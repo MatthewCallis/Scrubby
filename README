@@ -1,0 +1,3 @@
+Scrubby is a tool to (eventually) edit sprites and other data in ROM files for OSX. There wasn't an all purpose tool for this for OSX and I missed YY-CHR so I started Scrubby.
+
+Currently Scrubby can just view tile data.
