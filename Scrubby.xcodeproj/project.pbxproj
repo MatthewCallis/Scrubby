@@ -17,8 +17,9 @@
 		ACA078020D1B0BED0091F319 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = ACA078010D1B0BED0091F319 /* AppDelegate.m */; };
 		ACA07C980D1B5BF50091F319 /* NSData+RSHexDump.m in Sources */ = {isa = PBXBuildFile; fileRef = ACA07C970D1B5BF50091F319 /* NSData+RSHexDump.m */; };
 		ACD277EF0D7279AB00B390CB /* Scrubby.icns in Resources */ = {isa = PBXBuildFile; fileRef = ACD277EE0D7279AB00B390CB /* Scrubby.icns */; };
-		ACD6562B0D73B4B300D86E20 /* NSImage_BMPData.m in Sources */ = {isa = PBXBuildFile; fileRef = ACD6562A0D73B4B300D86E20 /* NSImage_BMPData.m */; };
 		ACD6564D0D73B6DF00D86E20 /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ACD6564C0D73B6DF00D86E20 /* QuickTime.framework */; };
+		ACE388821164349E00DCA15C /* NSBitmapImageRep+Gray.m in Sources */ = {isa = PBXBuildFile; fileRef = ACE3887B1164349E00DCA15C /* NSBitmapImageRep+Gray.m */; };
+		ACE388851164349E00DCA15C /* NSImage_BMPData.m in Sources */ = {isa = PBXBuildFile; fileRef = ACE388811164349E00DCA15C /* NSImage_BMPData.m */; };
 		ACF7526B115F346E00D567AF /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = ACF75269115F346E00D567AF /* MainMenu.xib */; };
 		ACF7529F115FD1C800D567AF /* BWToolkitFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ACF7529E115FD1C800D567AF /* BWToolkitFramework.framework */; };
 		ACF752D7115FD24400D567AF /* BWToolkitFramework.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = ACF7529E115FD1C800D567AF /* BWToolkitFramework.framework */; };
@@ -60,9 +61,11 @@
 		ACA07C960D1B5BF50091F319 /* NSData+RSHexDump.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+RSHexDump.h"; sourceTree = "<group>"; };
 		ACA07C970D1B5BF50091F319 /* NSData+RSHexDump.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+RSHexDump.m"; sourceTree = "<group>"; };
 		ACD277EE0D7279AB00B390CB /* Scrubby.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Scrubby.icns; sourceTree = "<group>"; };
-		ACD656290D73B4B300D86E20 /* NSImage_BMPData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSImage_BMPData.h; sourceTree = "<group>"; };
-		ACD6562A0D73B4B300D86E20 /* NSImage_BMPData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSImage_BMPData.m; sourceTree = "<group>"; };
 		ACD6564C0D73B6DF00D86E20 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = /System/Library/Frameworks/QuickTime.framework; sourceTree = "<absolute>"; };
+		ACE3887A1164349E00DCA15C /* NSBitmapImageRep+Gray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSBitmapImageRep+Gray.h"; sourceTree = "<group>"; };
+		ACE3887B1164349E00DCA15C /* NSBitmapImageRep+Gray.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSBitmapImageRep+Gray.m"; sourceTree = "<group>"; };
+		ACE388801164349E00DCA15C /* NSImage_BMPData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSImage_BMPData.h; sourceTree = "<group>"; };
+		ACE388811164349E00DCA15C /* NSImage_BMPData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSImage_BMPData.m; sourceTree = "<group>"; };
 		ACF7526A115F346E00D567AF /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		ACF7529E115FD1C800D567AF /* BWToolkitFramework.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = BWToolkitFramework.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -84,12 +87,9 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				ACD656290D73B4B300D86E20 /* NSImage_BMPData.h */,
-				ACD6562A0D73B4B300D86E20 /* NSImage_BMPData.m */,
 				AC9FCB920D71159700BB6A3B /* Custom Views */,
 				AC9FC4C60D6E8E2700BB6A3B /* ROM Parser */,
-				ACA07C960D1B5BF50091F319 /* NSData+RSHexDump.h */,
-				ACA07C970D1B5BF50091F319 /* NSData+RSHexDump.m */,
+				ACE388761164347B00DCA15C /* Special Classes */,
 				ACA078000D1B0BED0091F319 /* AppDelegate.h */,
 				ACA078010D1B0BED0091F319 /* AppDelegate.m */,
 			);
@@ -177,14 +177,27 @@
 		AC9FCB920D71159700BB6A3B /* Custom Views */ = {
 			isa = PBXGroup;
 			children = (
-				AC9FCBD00D711A4C00BB6A3B /* HexColorAdditions.h */,
-				AC9FCBD10D711A4C00BB6A3B /* HexColorAdditions.m */,
 				AC9FCBA50D71175600BB6A3B /* PixelImageView.h */,
 				AC9FCBA60D71175600BB6A3B /* PixelImageView.m */,
 				AC9FCA4D0D710BB300BB6A3B /* FullColorWell.h */,
 				AC9FCA4C0D710BB300BB6A3B /* FullColorWell.m */,
 			);
 			name = "Custom Views";
+			sourceTree = "<group>";
+		};
+		ACE388761164347B00DCA15C /* Special Classes */ = {
+			isa = PBXGroup;
+			children = (
+				AC9FCBD00D711A4C00BB6A3B /* HexColorAdditions.h */,
+				AC9FCBD10D711A4C00BB6A3B /* HexColorAdditions.m */,
+				ACA07C960D1B5BF50091F319 /* NSData+RSHexDump.h */,
+				ACA07C970D1B5BF50091F319 /* NSData+RSHexDump.m */,
+				ACE3887A1164349E00DCA15C /* NSBitmapImageRep+Gray.h */,
+				ACE3887B1164349E00DCA15C /* NSBitmapImageRep+Gray.m */,
+				ACE388801164349E00DCA15C /* NSImage_BMPData.h */,
+				ACE388811164349E00DCA15C /* NSImage_BMPData.m */,
+			);
+			name = "Special Classes";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -251,7 +264,8 @@
 				AC9FCA4E0D710BB300BB6A3B /* FullColorWell.m in Sources */,
 				AC9FCBA70D71175600BB6A3B /* PixelImageView.m in Sources */,
 				AC9FCBD20D711A4C00BB6A3B /* HexColorAdditions.m in Sources */,
-				ACD6562B0D73B4B300D86E20 /* NSImage_BMPData.m in Sources */,
+				ACE388821164349E00DCA15C /* NSBitmapImageRep+Gray.m in Sources */,
+				ACE388851164349E00DCA15C /* NSImage_BMPData.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -277,6 +291,47 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		ACC5B4D61162FD5400D1BED1 /* Analyzer */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_DEBUGGING_SYMBOLS = full;
+				GCC_ENABLE_SSE3_EXTENSIONS = NO;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = NO;
+				GCC_MODEL_TUNING = "";
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				PREBINDING = NO;
+			};
+			name = Analyzer;
+		};
+		ACC5B4D71162FD5400D1BED1 /* Analyzer */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = Scrubby_Prefix.pch;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_NAME = Scrubby;
+				WRAPPER_EXTENSION = app;
+				ZERO_LINK = YES;
+			};
+			name = Analyzer;
+		};
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -326,7 +381,7 @@
 				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = NO;
 				GCC_MODEL_TUNING = "";
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_VERSION = 4.2;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -334,6 +389,7 @@
 				GCC_WARN_UNUSED_VARIABLE = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PREBINDING = NO;
+				RUN_CLANG_STATIC_ANALYZER = YES;
 			};
 			name = Debug;
 		};
@@ -359,6 +415,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C01FCF4B08A954540054247B /* Debug */,
+				ACC5B4D71162FD5400D1BED1 /* Analyzer */,
 				C01FCF4C08A954540054247B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -368,6 +425,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C01FCF4F08A954540054247B /* Debug */,
+				ACC5B4D61162FD5400D1BED1 /* Analyzer */,
 				C01FCF5008A954540054247B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;

@@ -94,11 +94,12 @@ Handle myCreateHandleDataRef(Handle dataHandle, Str255 fileName, OSType fileType
 	NSRect r = NSMakeRect(0,0,size.width,size.height);
 
 	[self lockFocus];
-
 	NSBitmapImageRep *rep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:r];
 	[self unlockFocus];
+
 	NSData *bmpData = [rep representationUsingType:NSBMPFileType properties:nil];
 	if(bmpData == nil){
+		NSLog(@"BITMAP DATA NIL!");
 		// no joy. there's a bug in the OS which doesn't generate BMP data (all other types are supported, though). Use QuickTime to generate the bmp data.
 		NSData *pngData = [rep representationUsingType:NSPNGFileType properties:nil];
 		if([pngData length] == 0){

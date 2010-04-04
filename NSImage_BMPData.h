@@ -5,11 +5,12 @@
 //  Copyright (c) 2003 __MyCompanyName__. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-
+#import <Cocoa/Cocoa.h>
+#import <CoreFoundation/CoreFoundation.h>
 
 @interface NSImage(BMPData)
 
+Handle myCreateHandleDataRef(Handle dataHandle, Str255 fileName, OSType fileType, StringPtr mimeTypeString, Ptr initDataPtr, Size initDataByteCount);
 - (NSData *)BMPData;
 
 @end

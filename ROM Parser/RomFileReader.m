@@ -1,4 +1,6 @@
 #import "RomFileReader.h"
+#import "NSImage_BMPData.h"
+#import "HexColorAdditions.h"
 
 #define NESspritesPerChr	512		// Sprites Stored in each CHR
 #define NESromSpriteSize		16	// Datasize from ROM file (.nes) - 16 bytes
@@ -126,6 +128,8 @@
 }
 
 - (NSArray *) getSpriteDataFromChrBank:(NSData *)chrData number:(NSUInteger)number mode:(NSUInteger)mode{
+	NSLog(@"Number: %d", number);
+	NSLog(@"Data Size: %d", [chrData length]);
 	// gets the nth sprite from the CHR data and returns the composite data
 	// first sprite = 0
 	NSMutableArray *compositeArray = [NSMutableArray array];
@@ -137,7 +141,6 @@
 
 	NSUInteger i = 0;
 	NSUInteger j = 0;
-	NSUInteger k = 0;
 	unsigned char tile_a;
 	unsigned char tile_b;
 	unsigned char tile_c;
@@ -150,9 +153,10 @@
 	unsigned char mask = 0x80;
 
 	if(mode == 0){
+		// 1BPP Generic
 		for(j = 0; j < 8; j++){
 			mask = 0x80;
-			tile_a = chrBuffer[number * 16 + j * 2];
+			tile_a = chrBuffer[number * 8 + j * 2];
 			for(i = 0; i < 8; i++){
 				colorBit =  ((tile_a & mask) ? 1 : 0);
 				[compositeArray addObject: [NSNumber numberWithUnsignedChar:colorBit]];
@@ -162,18 +166,16 @@
 	}
 	else if(mode == 1){
 		// NES 2BPP
-		unsigned char channel_a[NESromSpriteChannelSize], channel_b[NESromSpriteChannelSize];
+		unsigned char channel_a[8], channel_b[NESromSpriteChannelSize];
 
-		for(i = 0; i < NESromSpriteChannelSize; i++){
+		for(i = 0; i < 8; i++){
 			channel_a[i] = chrBuffer[NESromSpriteSize * number + i];
-			channel_b[i] = chrBuffer[NESromSpriteSize * number + i + NESromSpriteChannelSize];
+			channel_b[i] = chrBuffer[NESromSpriteSize * number + i + 8];
 		}
 
-		for(i = 0; i < NESromSpriteChannelSize; i++){
-			for(j = 7; j >= 0; j--){
-				NSNumber *combinedBits = [NSNumber numberWithInt:(((channel_a[i] >> j) & 1) | (((channel_b[i] >> j) & 1) << 1)) + 1];
-				[compositeArray addObject: combinedBits];
-				k++;
+		for(i = 0; i < 8; i++){
+			for(j = 7; j < -1; j--){
+				[compositeArray addObject: [NSNumber numberWithInt:(((channel_a[i] >> j) & 1) | (((channel_b[i] >> j) & 1) << 1)) + 1]];
 			}
 		}
 	}
@@ -264,7 +266,7 @@
 				colorBit += ((tile_b & mask) ? 2 : 0);
 				colorBit += ((tile_c & mask) ? 4 : 0);
 				colorBit += ((tile_d & mask) ? 8 : 0);
-				colorBit =  ((tile_e & mask) ? 16 : 0);
+				colorBit += ((tile_e & mask) ? 16 : 0);
 				colorBit += ((tile_f & mask) ? 32 : 0);
 				colorBit += ((tile_g & mask) ? 64 : 0);
 				colorBit += ((tile_h & mask) ? 128 : 0);
@@ -278,8 +280,12 @@
 
 - (NSArray *) getSpriteDataRangeFromChrBank:(NSData *)chrData start:(NSUInteger)startIndex end:(NSUInteger)endIndex mode:(NSUInteger)mode mapping:(NSUInteger)mapping{
 	NSLog(@"[*] Extracting Sprite Range...");
+	NSLog(@"[*] Start to Finish: %d ... %d", startIndex, endIndex);
 //	if(!chrData || startIndex < 0 || endIndex > NESspritesPerChr) return NULL;
-	if(!chrData || startIndex < 0 || endIndex > 255) return NULL;
+	if(!chrData || startIndex < 0 || endIndex > 255){
+		NSLog(@"[!] Something missing or out of bounds!");
+		return NULL;
+	}
 
 	/*
 	 AB EF
@@ -323,7 +329,6 @@
 		225, 227, 229, 231, 233, 235, 237, 239, 241, 243, 245, 247, 249, 251, 253, 255	};
 
 	NSMutableArray *spriteData = [NSMutableArray array];
-	
 	NSUInteger i = 0;
 	NSUInteger j = 0;
 	for(i = startIndex; i <= endIndex; i++){
@@ -343,11 +348,11 @@
 				buildIndex = i;
 				break;
 		}
-		
+
 		// Get the Sprite
 		NSArray *sprite = [self getSpriteDataFromChrBank:chrData number:buildIndex mode:mode];
 		if(!sprite) return NULL;
-		
+
 		// Write it to the buffer
 		for(j = 0; j < RawSpriteSize; j++){
 			NSUInteger spriteIndex = ((i - startIndex) * RawSpriteSize + j);
@@ -444,56 +449,264 @@
 		NSUInteger currentPixel = [loopItem2 charValue];
 		//		NSLog(@"Pixel: %@", currentPixel);
 		switch(currentPixel){
-			case 0:
-				[imageBuffer appendData:[palette objectAtIndex:1]];
-				break;
-			case 1:
-				[imageBuffer appendData:[palette objectAtIndex:2]];
-				break;
-			case 2:
-				[imageBuffer appendData:[palette objectAtIndex:3]];
-				break;
-			case 3:
-				[imageBuffer appendData:[palette objectAtIndex:4]];
-				break;
-			case 4:
-				[imageBuffer appendBytes:magicA length:3];
-				break;
-			case 5:
-				[imageBuffer appendBytes:magicB length:3];
-				break;
-			case 6:
-				[imageBuffer appendBytes:magicC length:3];
-				break;
-			case 7:
-				[imageBuffer appendBytes:magicD length:3];
-				break;
-			case 8:
-				[imageBuffer appendBytes:magicE length:3];
-				break;
-			case 9:
-				[imageBuffer appendBytes:magicF length:3];
-				break;
-			case 10:
-				[imageBuffer appendBytes:magicG length:3];
-				break;
-			case 11:
-				[imageBuffer appendBytes:magicH length:3];
-				break;
-			case 12:
-				[imageBuffer appendBytes:magicI length:3];
-				break;
-			case 13:
-				[imageBuffer appendBytes:magicJ length:3];
-				break;
-			case 14:
-				[imageBuffer appendBytes:magicK length:3];
-				break;
-			case 15:
-				[imageBuffer appendBytes:magicL length:3];
-				break;
-			default:
-				[imageBuffer appendBytes:magicLGray length:3];
+			case 0:  [imageBuffer appendData:[palette objectAtIndex:1]]; break;
+			case 1:  [imageBuffer appendData:[palette objectAtIndex:2]]; break;
+			case 2:  [imageBuffer appendData:[palette objectAtIndex:3]]; break;
+			case 3:  [imageBuffer appendData:[palette objectAtIndex:4]]; break;
+			case 4:  [imageBuffer appendData:[palette objectAtIndex:5]]; break;
+			case 5:  [imageBuffer appendData:[palette objectAtIndex:6]]; break;
+			case 6:  [imageBuffer appendData:[palette objectAtIndex:7]]; break;
+			case 7:  [imageBuffer appendData:[palette objectAtIndex:8]]; break;
+			case 8:  [imageBuffer appendData:[palette objectAtIndex:9]]; break;
+			case 9:  [imageBuffer appendData:[palette objectAtIndex:10]]; break;
+			case 10: [imageBuffer appendData:[palette objectAtIndex:11]]; break;
+			case 11: [imageBuffer appendData:[palette objectAtIndex:12]]; break;
+			case 12: [imageBuffer appendData:[palette objectAtIndex:13]]; break;
+			case 13: [imageBuffer appendData:[palette objectAtIndex:14]]; break;
+			case 14: [imageBuffer appendData:[palette objectAtIndex:15]]; break;
+			case 15: [imageBuffer appendData:[palette objectAtIndex:16]]; break;
+			case 16: [imageBuffer appendData:[palette objectAtIndex:17]]; break;
+			case 17: [imageBuffer appendData:[palette objectAtIndex:18]]; break;
+			case 18: [imageBuffer appendData:[palette objectAtIndex:19]]; break;
+			case 19: [imageBuffer appendData:[palette objectAtIndex:20]]; break;
+			case 20: [imageBuffer appendData:[palette objectAtIndex:21]]; break;
+			case 21: [imageBuffer appendData:[palette objectAtIndex:22]]; break;
+			case 22: [imageBuffer appendData:[palette objectAtIndex:23]]; break;
+			case 23: [imageBuffer appendData:[palette objectAtIndex:24]]; break;
+			case 24: [imageBuffer appendData:[palette objectAtIndex:25]]; break;
+			case 25: [imageBuffer appendData:[palette objectAtIndex:26]]; break;
+			case 26: [imageBuffer appendData:[palette objectAtIndex:27]]; break;
+			case 27: [imageBuffer appendData:[palette objectAtIndex:28]]; break;
+			case 28: [imageBuffer appendData:[palette objectAtIndex:29]]; break;
+			case 29: [imageBuffer appendData:[palette objectAtIndex:30]]; break;
+			case 30: [imageBuffer appendData:[palette objectAtIndex:31]]; break;
+			case 31: [imageBuffer appendData:[palette objectAtIndex:32]]; break;
+			case 32: [imageBuffer appendData:[palette objectAtIndex:33]]; break;
+			case 33: [imageBuffer appendData:[palette objectAtIndex:34]]; break;
+			case 34: [imageBuffer appendData:[palette objectAtIndex:35]]; break;
+			case 35: [imageBuffer appendData:[palette objectAtIndex:36]]; break;
+			case 36: [imageBuffer appendData:[palette objectAtIndex:37]]; break;
+			case 37: [imageBuffer appendData:[palette objectAtIndex:38]]; break;
+			case 38: [imageBuffer appendData:[palette objectAtIndex:39]]; break;
+			case 39: [imageBuffer appendData:[palette objectAtIndex:40]]; break;
+			case 40: [imageBuffer appendData:[palette objectAtIndex:41]]; break;
+			case 41: [imageBuffer appendData:[palette objectAtIndex:42]]; break;
+			case 42: [imageBuffer appendData:[palette objectAtIndex:43]]; break;
+			case 43: [imageBuffer appendData:[palette objectAtIndex:44]]; break;
+			case 44: [imageBuffer appendData:[palette objectAtIndex:45]]; break;
+			case 45: [imageBuffer appendData:[palette objectAtIndex:46]]; break;
+			case 46: [imageBuffer appendData:[palette objectAtIndex:47]]; break;
+			case 47: [imageBuffer appendData:[palette objectAtIndex:48]]; break;
+			case 48: [imageBuffer appendData:[palette objectAtIndex:49]]; break;
+			case 49: [imageBuffer appendData:[palette objectAtIndex:50]]; break;
+			case 50: [imageBuffer appendData:[palette objectAtIndex:51]]; break;
+			case 51: [imageBuffer appendData:[palette objectAtIndex:52]]; break;
+			case 52: [imageBuffer appendData:[palette objectAtIndex:53]]; break;
+			case 53: [imageBuffer appendData:[palette objectAtIndex:54]]; break;
+			case 54: [imageBuffer appendData:[palette objectAtIndex:55]]; break;
+			case 55: [imageBuffer appendData:[palette objectAtIndex:56]]; break;
+			case 56: [imageBuffer appendData:[palette objectAtIndex:57]]; break;
+			case 57: [imageBuffer appendData:[palette objectAtIndex:58]]; break;
+			case 58: [imageBuffer appendData:[palette objectAtIndex:59]]; break;
+			case 59: [imageBuffer appendData:[palette objectAtIndex:60]]; break;
+			case 60: [imageBuffer appendData:[palette objectAtIndex:61]]; break;
+			case 61: [imageBuffer appendData:[palette objectAtIndex:62]]; break;
+			case 62: [imageBuffer appendData:[palette objectAtIndex:63]]; break;
+			case 63: [imageBuffer appendData:[palette objectAtIndex:64]]; break;
+			case 64: [imageBuffer appendData:[palette objectAtIndex:65]]; break;
+			case 65: [imageBuffer appendData:[palette objectAtIndex:66]]; break;
+			case 66: [imageBuffer appendData:[palette objectAtIndex:67]]; break;
+			case 67: [imageBuffer appendData:[palette objectAtIndex:68]]; break;
+			case 68: [imageBuffer appendData:[palette objectAtIndex:69]]; break;
+			case 69: [imageBuffer appendData:[palette objectAtIndex:70]]; break;
+			case 70: [imageBuffer appendData:[palette objectAtIndex:71]]; break;
+			case 71: [imageBuffer appendData:[palette objectAtIndex:72]]; break;
+			case 72: [imageBuffer appendData:[palette objectAtIndex:73]]; break;
+			case 73: [imageBuffer appendData:[palette objectAtIndex:74]]; break;
+			case 74: [imageBuffer appendData:[palette objectAtIndex:75]]; break;
+			case 75: [imageBuffer appendData:[palette objectAtIndex:76]]; break;
+			case 76: [imageBuffer appendData:[palette objectAtIndex:77]]; break;
+			case 77: [imageBuffer appendData:[palette objectAtIndex:78]]; break;
+			case 78: [imageBuffer appendData:[palette objectAtIndex:79]]; break;
+			case 79: [imageBuffer appendData:[palette objectAtIndex:80]]; break;
+			case 80: [imageBuffer appendData:[palette objectAtIndex:81]]; break;
+			case 81: [imageBuffer appendData:[palette objectAtIndex:82]]; break;
+			case 82: [imageBuffer appendData:[palette objectAtIndex:83]]; break;
+			case 83: [imageBuffer appendData:[palette objectAtIndex:84]]; break;
+			case 84: [imageBuffer appendData:[palette objectAtIndex:85]]; break;
+			case 85: [imageBuffer appendData:[palette objectAtIndex:86]]; break;
+			case 86: [imageBuffer appendData:[palette objectAtIndex:87]]; break;
+			case 87: [imageBuffer appendData:[palette objectAtIndex:88]]; break;
+			case 88: [imageBuffer appendData:[palette objectAtIndex:89]]; break;
+			case 89: [imageBuffer appendData:[palette objectAtIndex:90]]; break;
+			case 90: [imageBuffer appendData:[palette objectAtIndex:91]]; break;
+			case 91: [imageBuffer appendData:[palette objectAtIndex:92]]; break;
+			case 92: [imageBuffer appendData:[palette objectAtIndex:93]]; break;
+			case 93: [imageBuffer appendData:[palette objectAtIndex:94]]; break;
+			case 94: [imageBuffer appendData:[palette objectAtIndex:95]]; break;
+			case 95: [imageBuffer appendData:[palette objectAtIndex:96]]; break;
+			case 96: [imageBuffer appendData:[palette objectAtIndex:97]]; break;
+			case 97: [imageBuffer appendData:[palette objectAtIndex:98]]; break;
+			case 98: [imageBuffer appendData:[palette objectAtIndex:99]]; break;
+			case  99: [imageBuffer appendData:[palette objectAtIndex:100]]; break;
+			case 100: [imageBuffer appendData:[palette objectAtIndex:101]]; break;
+			case 101: [imageBuffer appendData:[palette objectAtIndex:102]]; break;
+			case 102: [imageBuffer appendData:[palette objectAtIndex:103]]; break;
+			case 103: [imageBuffer appendData:[palette objectAtIndex:104]]; break;
+			case 104: [imageBuffer appendData:[palette objectAtIndex:105]]; break;
+			case 105: [imageBuffer appendData:[palette objectAtIndex:106]]; break;
+			case 106: [imageBuffer appendData:[palette objectAtIndex:107]]; break;
+			case 107: [imageBuffer appendData:[palette objectAtIndex:108]]; break;
+			case 108: [imageBuffer appendData:[palette objectAtIndex:109]]; break;
+			case 109: [imageBuffer appendData:[palette objectAtIndex:110]]; break;
+			case 110: [imageBuffer appendData:[palette objectAtIndex:111]]; break;
+			case 111: [imageBuffer appendData:[palette objectAtIndex:112]]; break;
+			case 112: [imageBuffer appendData:[palette objectAtIndex:113]]; break;
+			case 113: [imageBuffer appendData:[palette objectAtIndex:114]]; break;
+			case 114: [imageBuffer appendData:[palette objectAtIndex:115]]; break;
+			case 115: [imageBuffer appendData:[palette objectAtIndex:116]]; break;
+			case 116: [imageBuffer appendData:[palette objectAtIndex:117]]; break;
+			case 117: [imageBuffer appendData:[palette objectAtIndex:118]]; break;
+			case 118: [imageBuffer appendData:[palette objectAtIndex:119]]; break;
+			case 119: [imageBuffer appendData:[palette objectAtIndex:120]]; break;
+			case 120: [imageBuffer appendData:[palette objectAtIndex:121]]; break;
+			case 121: [imageBuffer appendData:[palette objectAtIndex:122]]; break;
+			case 122: [imageBuffer appendData:[palette objectAtIndex:123]]; break;
+			case 123: [imageBuffer appendData:[palette objectAtIndex:124]]; break;
+			case 124: [imageBuffer appendData:[palette objectAtIndex:125]]; break;
+			case 125: [imageBuffer appendData:[palette objectAtIndex:126]]; break;
+			case 126: [imageBuffer appendData:[palette objectAtIndex:127]]; break;
+			case 127: [imageBuffer appendData:[palette objectAtIndex:128]]; break;
+			case 128: [imageBuffer appendData:[palette objectAtIndex:129]]; break;
+			case 129: [imageBuffer appendData:[palette objectAtIndex:130]]; break;
+			case 130: [imageBuffer appendData:[palette objectAtIndex:131]]; break;
+			case 131: [imageBuffer appendData:[palette objectAtIndex:132]]; break;
+			case 132: [imageBuffer appendData:[palette objectAtIndex:133]]; break;
+			case 133: [imageBuffer appendData:[palette objectAtIndex:134]]; break;
+			case 134: [imageBuffer appendData:[palette objectAtIndex:135]]; break;
+			case 135: [imageBuffer appendData:[palette objectAtIndex:136]]; break;
+			case 136: [imageBuffer appendData:[palette objectAtIndex:137]]; break;
+			case 137: [imageBuffer appendData:[palette objectAtIndex:138]]; break;
+			case 138: [imageBuffer appendData:[palette objectAtIndex:139]]; break;
+			case 139: [imageBuffer appendData:[palette objectAtIndex:140]]; break;
+			case 140: [imageBuffer appendData:[palette objectAtIndex:141]]; break;
+			case 141: [imageBuffer appendData:[palette objectAtIndex:142]]; break;
+			case 142: [imageBuffer appendData:[palette objectAtIndex:143]]; break;
+			case 143: [imageBuffer appendData:[palette objectAtIndex:144]]; break;
+			case 144: [imageBuffer appendData:[palette objectAtIndex:145]]; break;
+			case 145: [imageBuffer appendData:[palette objectAtIndex:146]]; break;
+			case 146: [imageBuffer appendData:[palette objectAtIndex:147]]; break;
+			case 147: [imageBuffer appendData:[palette objectAtIndex:148]]; break;
+			case 148: [imageBuffer appendData:[palette objectAtIndex:149]]; break;
+			case 149: [imageBuffer appendData:[palette objectAtIndex:150]]; break;
+			case 150: [imageBuffer appendData:[palette objectAtIndex:151]]; break;
+			case 151: [imageBuffer appendData:[palette objectAtIndex:152]]; break;
+			case 152: [imageBuffer appendData:[palette objectAtIndex:153]]; break;
+			case 153: [imageBuffer appendData:[palette objectAtIndex:154]]; break;
+			case 154: [imageBuffer appendData:[palette objectAtIndex:155]]; break;
+			case 155: [imageBuffer appendData:[palette objectAtIndex:156]]; break;
+			case 156: [imageBuffer appendData:[palette objectAtIndex:157]]; break;
+			case 157: [imageBuffer appendData:[palette objectAtIndex:158]]; break;
+			case 158: [imageBuffer appendData:[palette objectAtIndex:159]]; break;
+			case 159: [imageBuffer appendData:[palette objectAtIndex:160]]; break;
+			case 160: [imageBuffer appendData:[palette objectAtIndex:161]]; break;
+			case 161: [imageBuffer appendData:[palette objectAtIndex:162]]; break;
+			case 162: [imageBuffer appendData:[palette objectAtIndex:163]]; break;
+			case 163: [imageBuffer appendData:[palette objectAtIndex:164]]; break;
+			case 164: [imageBuffer appendData:[palette objectAtIndex:165]]; break;
+			case 165: [imageBuffer appendData:[palette objectAtIndex:166]]; break;
+			case 166: [imageBuffer appendData:[palette objectAtIndex:167]]; break;
+			case 167: [imageBuffer appendData:[palette objectAtIndex:168]]; break;
+			case 168: [imageBuffer appendData:[palette objectAtIndex:169]]; break;
+			case 169: [imageBuffer appendData:[palette objectAtIndex:170]]; break;
+			case 170: [imageBuffer appendData:[palette objectAtIndex:171]]; break;
+			case 171: [imageBuffer appendData:[palette objectAtIndex:172]]; break;
+			case 172: [imageBuffer appendData:[palette objectAtIndex:173]]; break;
+			case 173: [imageBuffer appendData:[palette objectAtIndex:174]]; break;
+			case 174: [imageBuffer appendData:[palette objectAtIndex:175]]; break;
+			case 175: [imageBuffer appendData:[palette objectAtIndex:176]]; break;
+			case 176: [imageBuffer appendData:[palette objectAtIndex:177]]; break;
+			case 177: [imageBuffer appendData:[palette objectAtIndex:178]]; break;
+			case 178: [imageBuffer appendData:[palette objectAtIndex:179]]; break;
+			case 179: [imageBuffer appendData:[palette objectAtIndex:180]]; break;
+			case 180: [imageBuffer appendData:[palette objectAtIndex:181]]; break;
+			case 181: [imageBuffer appendData:[palette objectAtIndex:182]]; break;
+			case 182: [imageBuffer appendData:[palette objectAtIndex:183]]; break;
+			case 183: [imageBuffer appendData:[palette objectAtIndex:184]]; break;
+			case 184: [imageBuffer appendData:[palette objectAtIndex:185]]; break;
+			case 185: [imageBuffer appendData:[palette objectAtIndex:186]]; break;
+			case 186: [imageBuffer appendData:[palette objectAtIndex:187]]; break;
+			case 187: [imageBuffer appendData:[palette objectAtIndex:188]]; break;
+			case 188: [imageBuffer appendData:[palette objectAtIndex:189]]; break;
+			case 189: [imageBuffer appendData:[palette objectAtIndex:190]]; break;
+			case 190: [imageBuffer appendData:[palette objectAtIndex:191]]; break;
+			case 191: [imageBuffer appendData:[palette objectAtIndex:192]]; break;
+			case 192: [imageBuffer appendData:[palette objectAtIndex:193]]; break;
+			case 193: [imageBuffer appendData:[palette objectAtIndex:194]]; break;
+			case 194: [imageBuffer appendData:[palette objectAtIndex:195]]; break;
+			case 195: [imageBuffer appendData:[palette objectAtIndex:196]]; break;
+			case 196: [imageBuffer appendData:[palette objectAtIndex:197]]; break;
+			case 197: [imageBuffer appendData:[palette objectAtIndex:198]]; break;
+			case 198: [imageBuffer appendData:[palette objectAtIndex:199]]; break;
+			case 199: [imageBuffer appendData:[palette objectAtIndex:200]]; break;
+			case 200: [imageBuffer appendData:[palette objectAtIndex:201]]; break;
+			case 201: [imageBuffer appendData:[palette objectAtIndex:202]]; break;
+			case 202: [imageBuffer appendData:[palette objectAtIndex:203]]; break;
+			case 203: [imageBuffer appendData:[palette objectAtIndex:204]]; break;
+			case 204: [imageBuffer appendData:[palette objectAtIndex:205]]; break;
+			case 205: [imageBuffer appendData:[palette objectAtIndex:206]]; break;
+			case 206: [imageBuffer appendData:[palette objectAtIndex:207]]; break;
+			case 207: [imageBuffer appendData:[palette objectAtIndex:208]]; break;
+			case 208: [imageBuffer appendData:[palette objectAtIndex:209]]; break;
+			case 209: [imageBuffer appendData:[palette objectAtIndex:210]]; break;
+			case 210: [imageBuffer appendData:[palette objectAtIndex:211]]; break;
+			case 211: [imageBuffer appendData:[palette objectAtIndex:212]]; break;
+			case 212: [imageBuffer appendData:[palette objectAtIndex:213]]; break;
+			case 213: [imageBuffer appendData:[palette objectAtIndex:214]]; break;
+			case 214: [imageBuffer appendData:[palette objectAtIndex:215]]; break;
+			case 215: [imageBuffer appendData:[palette objectAtIndex:216]]; break;
+			case 216: [imageBuffer appendData:[palette objectAtIndex:217]]; break;
+			case 217: [imageBuffer appendData:[palette objectAtIndex:218]]; break;
+			case 218: [imageBuffer appendData:[palette objectAtIndex:219]]; break;
+			case 219: [imageBuffer appendData:[palette objectAtIndex:220]]; break;
+			case 220: [imageBuffer appendData:[palette objectAtIndex:221]]; break;
+			case 221: [imageBuffer appendData:[palette objectAtIndex:222]]; break;
+			case 222: [imageBuffer appendData:[palette objectAtIndex:223]]; break;
+			case 223: [imageBuffer appendData:[palette objectAtIndex:224]]; break;
+			case 224: [imageBuffer appendData:[palette objectAtIndex:225]]; break;
+			case 225: [imageBuffer appendData:[palette objectAtIndex:226]]; break;
+			case 226: [imageBuffer appendData:[palette objectAtIndex:227]]; break;
+			case 227: [imageBuffer appendData:[palette objectAtIndex:228]]; break;
+			case 228: [imageBuffer appendData:[palette objectAtIndex:229]]; break;
+			case 229: [imageBuffer appendData:[palette objectAtIndex:230]]; break;
+			case 230: [imageBuffer appendData:[palette objectAtIndex:231]]; break;
+			case 231: [imageBuffer appendData:[palette objectAtIndex:232]]; break;
+			case 232: [imageBuffer appendData:[palette objectAtIndex:233]]; break;
+			case 233: [imageBuffer appendData:[palette objectAtIndex:234]]; break;
+			case 234: [imageBuffer appendData:[palette objectAtIndex:235]]; break;
+			case 235: [imageBuffer appendData:[palette objectAtIndex:236]]; break;
+			case 236: [imageBuffer appendData:[palette objectAtIndex:237]]; break;
+			case 237: [imageBuffer appendData:[palette objectAtIndex:238]]; break;
+			case 238: [imageBuffer appendData:[palette objectAtIndex:239]]; break;
+			case 239: [imageBuffer appendData:[palette objectAtIndex:240]]; break;
+			case 240: [imageBuffer appendData:[palette objectAtIndex:241]]; break;
+			case 241: [imageBuffer appendData:[palette objectAtIndex:242]]; break;
+			case 242: [imageBuffer appendData:[palette objectAtIndex:243]]; break;
+			case 243: [imageBuffer appendData:[palette objectAtIndex:244]]; break;
+			case 244: [imageBuffer appendData:[palette objectAtIndex:245]]; break;
+			case 245: [imageBuffer appendData:[palette objectAtIndex:246]]; break;
+			case 246: [imageBuffer appendData:[palette objectAtIndex:247]]; break;
+			case 247: [imageBuffer appendData:[palette objectAtIndex:248]]; break;
+			case 248: [imageBuffer appendData:[palette objectAtIndex:249]]; break;
+			case 249: [imageBuffer appendData:[palette objectAtIndex:250]]; break;
+			case 250: [imageBuffer appendData:[palette objectAtIndex:251]]; break;
+			case 251: [imageBuffer appendData:[palette objectAtIndex:252]]; break;
+			case 252: [imageBuffer appendData:[palette objectAtIndex:253]]; break;
+			case 253: [imageBuffer appendData:[palette objectAtIndex:254]]; break;
+			case 254: [imageBuffer appendData:[palette objectAtIndex:255]]; break;
+			case 255: [imageBuffer appendData:[palette objectAtIndex:256]]; break;
+				
+			default: [imageBuffer appendBytes:magicLGray length:3];
 		}
 	}
 	
@@ -526,24 +739,93 @@
 	
 	unsigned char *destData = [bitmap bitmapData]; // For "planar" data you would use getBitmapDataPlanes: and filling it in, one byte at a time, something like:
 	const unsigned char *srcData = [imageBuffer bytes];
-    unsigned char *p1, *p2;
     NSUInteger n = 1;
 	NSUInteger x, y;
 	
 	for(y = 0; y < height; y++){
 		for(x = 0; x < width; x++){
-			p1 = (unsigned char *)srcData + n * (y * width + x);
-			p2 = destData + y * width + x;
-			
 			destData[y * width + x] = srcData[y * width + x];
 		}
 	}
-	
+
 //	NSData *data = [bitmap representationUsingType:NSBMPFileType properties:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat: 2.0 ], NSImageCompressionFactor, nil]];
 //	[data writeToFile:@"testsnes.bmp" atomically:YES];
-	
+
 	NSLog(@"[*] Made Bitmap!");
 	return bitmap;
+}
+
+- (void) encodeImage:(NSImage *)imageObject thingsNeeded:(NSDictionary *)thingsNeeded{
+	NSLog(@"[*] Encoding Image");
+	NSMutableData *bitmapData = [NSMutableData dataWithData:[imageObject BMPData]];
+	NSUInteger colorCount = [bitmapData colorCount];
+	NSArray *colorCounter = [bitmapData colors];
+
+	NSLog(@"Width:  %f x %f", [imageObject size].width, [imageObject size].height);
+	NSLog(@"Colors: %i : %@", colorCount, [colorCounter description]);
+
+	NSUInteger x = 0;
+	NSUInteger y = 0;
+	NSUInteger offset = 54;
+	unsigned char imagemap[16384];	// 128 x 128 Pixels
+
+	offset = 54;
+	for(y = 0; y < 128; y++){
+		for(x = 0; x < 128; x++){
+			NSUInteger colorCode;
+			NSData *subData = [bitmapData subdataWithRange:NSMakeRange(offset, 4)];
+			if([subData isEqualToData: [colorCounter objectAtIndex:0]]){		colorCode = 0;	}
+			else if([subData isEqualToData: [colorCounter objectAtIndex:1]]){	colorCode = 1;	}
+			else if([subData isEqualToData: [colorCounter objectAtIndex:2]]){	colorCode = 2;	}
+			else if([subData isEqualToData: [colorCounter objectAtIndex:3]]){	colorCode = 3;	}
+			else{
+				NSLog(@"Too Many Colors!");
+//				NSLog(@"SubData:\t\t%@", [subData description]);
+//				NSLog(@"Current Pixel: %d", offset);
+				colorCode = 3;
+			}
+			imagemap[y * 128 + x] = colorCode;
+			offset += 4;
+		}
+	}
+	
+	NSLog(@"[3] Made CHR");
+	
+	NSMutableData *chrBuffer = [NSMutableData data];
+	unsigned char colorByte;
+	NSUInteger i;
+	NSUInteger j;
+	for(j = 0; j < 128; j += 8){
+		for(i = 0; i < 128; i += 8){
+			// Low Bit
+			for(y = j; y < j + 8; y++){
+				colorByte = 0;
+				for(x = i; x < i + 8; x++){
+					colorByte *= 2;
+					colorByte += (imagemap[y * 128 + x] & 1);
+				}
+				[chrBuffer appendBytes:&colorByte length:1];
+			}
+			// High Bit
+			for(y = j; y < j + 8; y++){
+				colorByte = 0;
+				for(x = i; x < i + 8; x++){
+					colorByte *= 2;
+					colorByte += ((imagemap[y * 128 + x] >> 1) & 1);
+				}
+				[chrBuffer appendBytes:&colorByte length:1];
+			}
+		}
+	}
+	
+	NSLog(@"[4] CHR Data:\t\t%@", [chrBuffer description]);
+
+	[chrBuffer writeToFile:@"CHR Test.raw" atomically:YES];
+// Write to a temporary file
+//	NSString * path = [NSTemporaryDirectory() stringByAppendingPathComponent:[filename lastPathComponent]];
+//	if (![bitmapData writeToURL:[NSURL fileURLWithPath:path] options:NSAtomicWrite error:nil]) {
+//		NSLog(@"Couldn't write to temporary file.");
+//	}	
 }
 
 @synthesize fullPath;

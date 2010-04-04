@@ -3,6 +3,7 @@
 #import <BWToolkitFramework/BWToolkitFramework.h>
 #import <FullColorWell.h>
 #import <PixelImageView.h>
+#import "ROM Parser/RomFileReader.h"
 
 @interface AppDelegate : NSObject{
 	IBOutlet NSMenu *menu;
@@ -11,6 +12,9 @@
 	IBOutlet NSTextField *offsetField;
 	IBOutlet NSPopUpButton *modeComboBox;
 	IBOutlet NSPopUpButton *layoutComboBox;
+
+	IBOutlet NSPanel *spriteControlsPanel;
+	IBOutlet NSPanel *palettePanel;
 
 	IBOutlet NSButton *addOneByte;
 	IBOutlet NSButton *addOnePage;
@@ -278,15 +282,14 @@
 	IBOutlet FullColorWell *paletteColor254;
 	IBOutlet FullColorWell *paletteColor255;
 	IBOutlet FullColorWell *paletteColor256;
-
-	IBOutlet NSPanel *spriteControlsPanel;
-	IBOutlet NSPanel *palettePanel;
 	
 	NSNumber *offset;
 	NSString *filename;
 	NSString *layout;
 	NSString *mode;
 	NSMutableArray *palette;
+
+	RomFileReader *imageReader;	
 }
 
 @property (readonly,copy) NSNumber* offset;
@@ -295,6 +298,8 @@
 @property (readonly,copy) NSString* mode;
 @property (readonly,copy) NSMutableArray* palette;
 
+- (IBAction) copy:(id)sender;
+- (IBAction) paste:(id)sender;
 - (IBAction) openDirectory:(id)sender;
 - (IBAction) incrementOffsetByOne:(id)sender;
 - (IBAction) decrementOffsetByOne:(id)sender;
@@ -304,13 +309,12 @@
 - (IBAction) modeChanged:(id)sender;
 - (IBAction) colorChanged:(id)sender;
 - (IBAction) saveImage:(id)sender;
-
-//- (IBAction) encodeFile:(id)sender;
+- (IBAction) importPalette:(id)sender;
+- (IBAction) encodeFile:(id)sender;
 
 - (void) awakeFromNib;
-
-//- (void) generateImage:(NSString *)fileName offset:(int)offset mode:(NSString *)mode layout:(NSString *)layout;
 - (void) generateImage;
+- (void) parsePalette:(NSString *)paletteFile;
 
 @property (retain) NSMenu *menu;
 @property (retain) NSWindow *window;
@@ -322,21 +326,5 @@
 @property (retain) NSButton *addOnePage;
 @property (retain) NSButton *removeOneByte;
 @property (retain) NSButton *removeOnePage;
-@property (retain) FullColorWell *paletteColor1;
-@property (retain) FullColorWell *paletteColor2;
-@property (retain) FullColorWell *paletteColor3;
-@property (retain) FullColorWell *paletteColor4;
-@property (retain) FullColorWell *paletteColor5;
-@property (retain) FullColorWell *paletteColor6;
-@property (retain) FullColorWell *paletteColor7;
-@property (retain) FullColorWell *paletteColor8;
-@property (retain) FullColorWell *paletteColor9;
-@property (retain) FullColorWell *paletteColor10;
-@property (retain) FullColorWell *paletteColor11;
-@property (retain) FullColorWell *paletteColor12;
-@property (retain) FullColorWell *paletteColor13;
-@property (retain) FullColorWell *paletteColor14;
-@property (retain) FullColorWell *paletteColor15;
-@property (retain) FullColorWell *paletteColor16;
 
 @end

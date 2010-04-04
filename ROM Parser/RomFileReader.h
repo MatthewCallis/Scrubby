@@ -14,6 +14,8 @@
 - (NSArray *) makeCompoundSprite:(NSArray *)spriteData size:(NSUInteger)size columns:(NSUInteger)columns mode:(NSUInteger)mode;
 - (NSBitmapImageRep *) makeBitmapData:(NSArray *)compoundData palette:(NSMutableArray *)palette;
 
+- (void) encodeImage:(NSImage *)imageObject thingsNeeded:(NSDictionary *)thingsNeeded;
+
 @property (retain) NSString *fullPath;
 
 @end

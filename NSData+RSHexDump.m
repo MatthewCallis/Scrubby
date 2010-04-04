@@ -32,9 +32,7 @@ const unsigned int kDefaultMaxBytesToHexDump = 1024;
 	if(startOffset < 0) startOffset = [self length] + startOffset;
 
 	// Do we have more data than the caller wants?
-	BOOL curtailOutput = NO;
 	if((stopOffset - startOffset) > maxBytes){
-		curtailOutput = YES;
 		stopOffset = startOffset + maxBytes;
 	}
 
